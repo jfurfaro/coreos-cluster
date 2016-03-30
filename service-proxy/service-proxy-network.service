@@ -1,0 +1,12 @@
+[Unit]
+BindsTo=service-proxy.service
+After=service-proxy.service
+
+[Service]
+Restart=on-failure
+EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/etcdctl.env
+ExecStart=/usr/bin/etcdctl exec-watch --recursive /services/networks -- /bin/sh -c 'if [ $ETCD_WATCH_ACTION = "set" ]; then /usr/bin/docker network connect $(cut -d ':' -f1 <<< $ETCD_WATCH_VALUE) service-proxy; elif [ $ETCD_WATCH_ACTION = "delete" ]; then sudo systemctl restart service-proxy; fi'
+
+[X-Fleet]
+MachineOf=service-proxy.service

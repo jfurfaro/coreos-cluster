@@ -1,0 +1,12 @@
+[Unit]
+Requires=redis-discovery.service
+After=etcd2.service
+
+[Service]
+EnvironmentFile=/etc/environment
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill redis
+ExecStartPre=-/usr/bin/docker rm redis
+ExecStartPre=/usr/bin/docker pull redis:3.0-alpine
+ExecStart=/usr/bin/docker run --name redis --net redis redis:3.0-alpine
+ExecStop=/usr/bin/docker stop redis

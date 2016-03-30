@@ -1,0 +1,11 @@
+[Unit]
+Description=Configuration Data Volume Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=-/usr/bin/docker rm service-proxy-data
+ExecStartPre=/usr/bin/docker pull nginx:1.9
+ExecStart=/usr/bin/docker run -v /etc/nginx --name service-proxy-data --net none nginx:1.9 echo "created new data container"

@@ -1,0 +1,26 @@
+[Unit]
+Requires=web-proxy-data.service
+After=web-proxy-data.service
+
+[Service]
+EnvironmentFile=/etc/environment
+TimeoutStartSec=0
+Restart=always
+ExecStartPre=-/bin/sh -c '/usr/bin/docker kill web-proxy-confd-$(hostname -s)'
+ExecStartPre=-/bin/sh -c '/usr/bin/docker rm web-proxy-confd-$(hostname -s)'
+ExecStartPre=/usr/bin/docker pull quay.io/jfurfaro/nginx-web-proxy:latest
+ExecStart=/bin/sh -c '/usr/bin/docker run --name web-proxy-confd-$(hostname -s) \
+	-v /var/run/docker.sock:/var/run/docker.sock \
+	-v /home/core/.ssl:/ssl \
+	-e WEB_PROXY=web-proxy-$(hostname -s) \
+	--volumes-from web-proxy-data-$(hostname -s) \
+	quay.io/jfurfaro/nginx-web-proxy:latest \
+	-interval=10 \
+	-node=https://${COREOS_PRIVATE_IPV4}:2379 \
+	-client-ca-keys /ssl/ca.pem \
+	-client-key /ssl/client-key.pem \
+	-client-cert /ssl/client.pem'
+ExecStop=/bin/sh -c '/usr/bin/docker stop web-proxy-$(hostname -s)'
+
+[X-Fleet]
+Global=true

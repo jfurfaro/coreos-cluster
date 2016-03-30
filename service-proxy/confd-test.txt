@@ -1,0 +1,1 @@
+confd -node=https://172.17.8.101:2379 -client-ca-keys /ssl/ca.pem -client-key /ssl/client-key.pem -client-cert /ssl/client.pem

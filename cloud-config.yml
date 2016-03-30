@@ -1,0 +1,55 @@
+#cloud-config
+
+coreos:
+  etcd2:
+    advertise-client-urls: https://$private_ipv4:2379
+    initial-advertise-peer-urls: https://$private_ipv4:2380
+    listen-client-urls: https://$private_ipv4:2379,https://127.0.0.1:2379
+    listen-peer-urls: https://$private_ipv4:2380
+    client-cert-auth: true
+    trusted-ca-file: "/home/core/.ssl/ca.pem"
+    cert-file: "/home/core/.ssl/coreos.pem"
+    key-file: "/home/core/.ssl/coreos-key.pem"
+    peer-client-cert-auth: true
+    peer-trusted-ca-file: "/home/core/.ssl/ca.pem"
+    peer-cert-file: "/home/core/.ssl/coreos.pem"
+    peer-key-file: "/home/core/.ssl/coreos-key.pem"
+    # generate a new token for each unique cluster from https://discovery.etcd.io/new:
+    discovery: https://discovery.etcd.io/<token>
+  fleet:
+    etcd_servers: https://127.0.0.1:2379
+    public-ip: $private_ipv4
+    etcd_cafile: "/home/core/.ssl/ca.pem"
+    etcd_certfile: "/home/core/.ssl/coreos.pem"
+    etcd_keyfile: "/home/core/.ssl/coreos-key.pem"
+  units:
+    - name: etcd2.service
+      command: start
+    - name: fleet.service
+      command: start
+    - name: iptables-restore.service
+      enable: true
+      command: start
+    - name: docker.service
+      drop-ins:
+      - name: 50-cluster-store.conf
+        content: |-
+          [Service]
+          Environment="DOCKER_OPTS=--cluster-store=etcd://127.0.0.1:2379 --cluster-advertise=$private_ipv4:2376 --cluster-store-opt kv.cacertfile=/home/core/.ssl/ca.pem --cluster-store-opt kv.certfile=/home/core/.ssl/coreos.pem --cluster-store-opt kv.keyfile=/home/core/.ssl/coreos-key.pem"
+write_files:
+  - path: "/etc/profile.d/aliases.sh"
+    content: |
+      alias ll='ls -lFh'
+      alias la='ls -lFhA'
+  - path: "/etc/etcdctl.env"
+    content: |
+      ETCDCTL_CERT_FILE=/home/core/.ssl/client.pem
+      ETCDCTL_KEY_FILE=/home/core/.ssl/client-key.pem
+      ETCDCTL_CA_FILE=/home/core/.ssl/ca.pem
+      ETCDCTL_ENDPOINT=https://127.0.0.1:2379
+  - path: "/etc/profile.d/etcdctl-config.sh"
+    content: |
+      export ETCDCTL_CERT_FILE=/home/core/.ssl/client.pem
+      export ETCDCTL_KEY_FILE=/home/core/.ssl/client-key.pem
+      export ETCDCTL_CA_FILE=/home/core/.ssl/ca.pem
+      export ETCDCTL_ENDPOINT=https://127.0.0.1:2379

@@ -1,0 +1,26 @@
+[Unit]
+Requires=rethinkdb-discovery@%i.service
+After=etcd2.service docker.service
+
+[Service]
+Restart=always
+EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/etcdctl.env
+TimeoutStartSec=0
+ExecStartPre=-/bin/sh -c '/usr/bin/docker kill rethinkdb-$(hostname -s)'
+ExecStartPre=-/bin/sh -c '/usr/bin/docker rm rethinkdb-$(hostname -s)'
+ExecStartPre=/usr/bin/docker pull rethinkdb:2.2
+ExecStart=/bin/sh -c '/usr/bin/docker run --name rethinkdb-$(hostname -s)   \
+    -p 127.0.0.1:8080:8080                        			   				\
+    --net rethinkdb                                            				\
+    -v /data/rethinkdb/:/data/                                 				\
+    rethinkdb:2.2 rethinkdb --bind all                         				\
+    --server-name $(hostname -s)                 			   				\
+    $(/usr/bin/etcdctl ls /services/rethinkdb |                				\
+        xargs -I {} /usr/bin/etcdctl get {} |                  				\
+        sed s/^/"--join "/ | sed s/$/":29015"/ |               				\
+        tr "\n" " ")'
+ExecStop=/bin/sh -c '/usr/bin/docker stop rethinkdb-$(hostname -s)'
+
+[X-Fleet]
+Conflicts=rethinkdb@*

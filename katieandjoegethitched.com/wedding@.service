@@ -1,0 +1,19 @@
+[Unit]
+Requires=wedding-discovery@%i.service
+After=etcd2.service docker.service
+
+[Service]
+Restart=always
+EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/etcdctl.env
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill wedding-%i
+ExecStartPre=-/usr/bin/docker rm wedding-%i
+ExecStartPre=/usr/bin/docker pull quay.io/jfurfaro/wedding:latest
+ExecStartPre=/usr/bin/docker create --name wedding-%i --net service-proxy -e DB_HOST=service-proxy quay.io/jfurfaro/wedding:latest
+ExecStartPre=/usr/bin/docker network connect web-proxy wedding-%i
+ExecStart=/usr/bin/docker start -a wedding-%i
+ExecStop=/usr/bin/docker stop wedding-%i
+
+[X-Fleet]
+Conflicts=wedding@*

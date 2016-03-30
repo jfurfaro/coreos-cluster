@@ -1,0 +1,14 @@
+[Unit]
+Description=Configuration Data Volume Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=-/bin/sh -c '/usr/bin/docker rm web-proxy-data-$(hostname -s)'
+ExecStartPre=/usr/bin/docker pull nginx:1.9
+ExecStart=/bin/sh -c '/usr/bin/docker run -v /etc/nginx --name web-proxy-data-$(hostname -s) --net none nginx:1.9 echo "created new web data container"'
+
+[X-Fleet]
+Global=true
