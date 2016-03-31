@@ -1,0 +1,12 @@
+[Unit]
+BindsTo=mrstache@%i.service
+After=mrstache@%i.service
+
+[Service]
+EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/etcdctl.env
+ExecStart=/bin/sh -c "while true; do etcdctl set /sites/mrstache.io/mrstache-%i mrstache-%i:4000 --ttl 20; sleep 10; done"
+ExecStop=/usr/bin/etcdctl rm /sites/mrstache.io/mrstache-%i
+
+[X-Fleet]
+MachineOf=mrstache@%i.service

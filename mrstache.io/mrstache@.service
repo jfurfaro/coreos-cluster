@@ -1,0 +1,20 @@
+[Unit]
+Requires=mrstache-discovery@%i.service
+After=etcd2.service docker.service
+
+[Service]
+Restart=always
+EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/etcdctl.env
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill mrstache-%i
+ExecStartPre=-/usr/bin/docker rm mrstache-%i
+ExecStartPre=/bin/sh -c 'export SESSION_SECRET=$(etcdctl get /mrstache.io/session-secret)'
+ExecStartPre=/usr/bin/docker pull quay.io/jfurfaro/mrstache.io:latest
+ExecStartPre=/bin/sh -c '/usr/bin/docker create --name mrstache-%i --net service-proxy -e SESSION_SECRET=${SESSION_SECRET} quay.io/jfurfaro/mrstache.io:latest'
+ExecStartPre=/usr/bin/docker network connect web-proxy mrstache-%i
+ExecStart=/usr/bin/docker start -a mrstache-%i
+ExecStop=/usr/bin/docker stop mrstache-%i
+
+[X-Fleet]
+Conflicts=mrstache@*
