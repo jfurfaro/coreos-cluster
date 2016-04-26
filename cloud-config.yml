@@ -22,6 +22,11 @@ coreos:
     etcd_cafile: "/home/core/.ssl/ca.pem"
     etcd_certfile: "/home/core/.ssl/coreos.pem"
     etcd_keyfile: "/home/core/.ssl/coreos-key.pem"
+  locksmith:
+    endpoint: https://127.0.0.1:2379
+    etcd_cafile: "/home/core/.ssl/ca.pem"
+    etcd_certfile: "/home/core/.ssl/client.pem"
+    etcd_keyfile: "/home/core/.ssl/client-key.pem"
   units:
     - name: etcd2.service
       command: start
