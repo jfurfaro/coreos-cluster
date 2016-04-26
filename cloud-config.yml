@@ -58,3 +58,9 @@ write_files:
       export ETCDCTL_KEY_FILE=/home/core/.ssl/client-key.pem
       export ETCDCTL_CA_FILE=/home/core/.ssl/ca.pem
       export ETCDCTL_ENDPOINT=https://127.0.0.1:2379
+  - path: "/etc/profile.d/locksmithctl-config.sh"
+    content: |
+      export LOCKSMITHCTL_ETCD_CERTFILE=/home/core/.ssl/client.pem
+      export LOCKSMITHCTL_ETCD_KEYFILE=/home/core/.ssl/client-key.pem
+      export LOCKSMITHCTL_ETCD_CAFILE=/home/core/.ssl/ca.pem
+      export LOCKSMITHCTL_ENDPOINT=https://127.0.0.1:2379
