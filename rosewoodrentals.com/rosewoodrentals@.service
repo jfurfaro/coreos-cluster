@@ -1,0 +1,17 @@
+[Unit]
+Requires=rosewoodrentals-discovery@%i.service
+After=etcd2.service docker.service
+
+[Service]
+Restart=always
+EnvironmentFile=/etc/environment
+EnvironmentFile=/etc/etcdctl.env
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill rosewoodrentals-%i
+ExecStartPre=-/usr/bin/docker rm rosewoodrentals-%i
+ExecStartPre=/usr/bin/docker pull quay.io/jfurfaro/rosewoodrentals:latest
+ExecStart=/usr/bin/docker run --name rosewoodrentals-%i --net web-proxy quay.io/jfurfaro/rosewoodrentals:latest
+ExecStop=/usr/bin/docker stop rosewoodrentals-%i
+
+[X-Fleet]
+Conflicts=rosewoodrentals@*
